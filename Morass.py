@@ -5,11 +5,14 @@ import copy as c
 import tkinter as tk
 import time
 import sys
+import os
 import threading
 from queue import Queue
 import builtins
+from pathlib import Path
 presavecode = "" # <---- !!! Enter Save Code Here !!! #
-
+script_dir = Path(__file__).parent
+file_path = script_dir / "saveFile.txt"
 #Welcome to the labyrinth, Roamer! 
 #Cheatcode = 
 #st-mp;999000000008989:in-Roamer's Revival;1:in-weapon knowledge;5:in-Bear Traps;3:in-Sharp Fangs;5:in-Komodo Jaws;4:in-Quick SetUp;1:in-The Flamer;1:in-Compressed Canisters;3:in-Cleansing Flames;2:in-終わり [Owari];1:in-Cloudfire Ejection System;1:in-Frozen Growth;1:in-Heavy Caliber;1:in-Targeting System;1:in-Endless Replication;3:in-Gifts of Nothing;2:bo-1;3:bo-4;3:bo-3;3;*:bo-2;3:se-1;0:se-2;0:se-3;0:se-4;d;*:se-5;a;*:se-6;w;*:se-7;s;*:se-8;f;*:se-9;ft;*:se-10;o;*:se-11;t;*:ti-1
@@ -177,6 +180,7 @@ boons = { #"ex":[0"name", 1"description", 2on state, 3unlocked state, 4"1 : \n2 
     "4" : ["Boon of the Seraphim", "A Blessing of Flight from a Seraphim's second pair of wings. ", False, 0, "1 : Light the predator on fire for 20 turns in one run.\n2 : Light the predator on fire for 40 turns in one run.\n3 : Light the predator on fire for 80 turns in one run."],
 }
 boon_notification = ""
+oblivion_choice = ""
 pred_variations = ["Reaper", "Beest", "Huntsman", "Sheep"]
 #pred_variations = ["Beest"] # for testing
 status = {
@@ -301,6 +305,78 @@ def mainGame(console):
     global hs_text
     global time_survived
     global boon_notification
+    global script_dir
+    global file_path
+    global oblivion_choice
+    def loadSave(code):
+        try:
+            theload = code
+            theload = theload.split(":")
+            for x in theload:
+                if "st-" in x:
+                    if "mp" in x:
+                        tempx = x.split(";")
+                        status["mastery points"] = int(tempx[1])
+                if "in-" in x:
+                    tempx = x.split("-")
+                    #print(tempx)
+                    tempx = tempx[1]
+                    tempx = tempx.split(";")
+                    for key in instincts_unbought:
+                        if instincts_unbought[key]["name"] == tempx[0]:
+                            inspot = key
+                    instincts[str(inspot)] = [tempx[0],tempx[1]]
+                    instincts_unbought[inspot]["level"] = tempx[1]
+                    if int(instincts_unbought[inspot]["level"]) == int(instincts_unbought[inspot]["max level"]):
+                        instincts_unbought[inspot]["status"] = "×"*len(instincts_unbought[inspot]["status"])
+                if "bo-" in x:
+                    tempx = x.split("-")
+                    tempx = tempx[1]
+                    tempx = tempx.split(";")
+                    tempxx = tempx[0]
+                    tempxx = str(tempxx)
+                    boons[tempxx][3] = int(tempx[1])
+                    if len(tempx) == 3:
+                        if tempx[2] == "*" and boon_donut_cheat == 0:
+                            boons[tempxx][2] = True
+                            boon_donut_cheat = 1
+                if "se-" in x:
+                    tempx = x.split(";")
+                    settingtemp = tempx[0].split("-")
+                    if "*" in tempx:
+                        settings[settingtemp[1]][2] = str(tempx[1])
+                    else:
+                        settings[settingtemp[1]][2] = int(tempx[1])
+                if "ti-" in x:
+                    settingtemp = x.split("-")
+                    all_gone = round(time.time() - float(settingtemp[1]))
+                    all_gone = round(time.time() - float(settingtemp[1]))
+                    days_gone = m.floor(all_gone / 86400)
+                    if days_gone == 0:
+                        hours_gone = m.floor((all_gone) / 3600)
+                    else:
+                        hours_gone = m.floor((all_gone % days_gone) / 3600)
+                    minutes_gone = m.floor((all_gone % 3600)/ 60)
+                    seconds_gone = ((all_gone - hours_gone) - minutes_gone) % 60
+                    print(f"\nWelcome back Roamer! You have been gone {days_gone} days, {hours_gone} hours, {minutes_gone} minutes, and {seconds_gone} seconds.\n")
+                    time.sleep(1)
+                if "hs" in x:
+                    settingtemp = x.split("-")
+                    hidden_shelves = int(settingtemp[1])
+        except Exception as exc: #SWITCH TO EXCEPT WHEN DONE
+            print(exc)
+            traceback.print_exc()
+            print("Bad Savecode: Fix it or contact Dev")
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    if content != "":
+        loadSave(content)
+        
+
+    def saveGame(code):
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(code)
 
     def makemap(x, y, item):
         for i in range(x):
@@ -635,7 +711,8 @@ def mainGame(console):
         if thecode != "st-mp;0:in-Roamer's Revival;1:se-1;0:se-2;0:se-3;0:se-4;d;*:se-5;a;*:se-6;w;*:se-7;s;*:se-8;f;*:se-9;ft;*:se-10;o;*:se-11;t;*":
             thecode.append("ti-"+str(time.time()))
         thecode = ":".join(thecode)
-        print(thecode)
+        # print(thecode)
+        saveGame(thecode)
         
     def notdeath():
         global mastery_pool
@@ -830,9 +907,17 @@ def mainGame(console):
             breakcheck = True
     
     while True:
-        print("Current Save Code:")
-        savingcode()
-        print(f"\nWelcome to the Oblivion. [1] Enter the labyrinth || [2] The Library || [3] Roamer's Instincts || {boon_notification}{boon_notification} [4] Boons {boon_notification}{boon_notification} || [5] Status || [6] Settings || [7] Load Save {hs_text}")
+        if oblivion_choice :
+            if oblivion_choice == "7":
+                print("Data Wiped.")
+                os.execv(sys.executable, [sys.executable] + sys.argv)
+            else:
+                print("Game Saved.")
+                savingcode()
+        else:
+            print("Game Saved.")
+            savingcode()
+        print(f"\nWelcome to the Oblivion. [1] Enter the labyrinth || [2] The Library || [3] Roamer's Instincts || {boon_notification}{boon_notification} [4] Boons {boon_notification}{boon_notification} || [5] Status || [6] Settings || [7] Clear Save {hs_text}")
         if presavecode == "":
             oblivion_choice = input()
         else:
@@ -1282,69 +1367,70 @@ def mainGame(console):
                     except ValueError:
                         print("Bad Input")
         if oblivion_choice == "7":
-            boon_donut_cheat = 0
-            try:
-                if presavecode == "":
-                    theload = input("Enter Code:")
-                else:
-                    theload = presavecode
-                theload = theload.split(":")
-                for x in theload:
-                    if "st-" in x:
-                        if "mp" in x:
-                            tempx = x.split(";")
-                            status["mastery points"] = int(tempx[1])
-                    if "in-" in x:
-                        tempx = x.split("-")
-                        #print(tempx)
-                        tempx = tempx[1]
-                        tempx = tempx.split(";")
-                        for key in instincts_unbought:
-                            if instincts_unbought[key]["name"] == tempx[0]:
-                                inspot = key
-                        instincts[str(inspot)] = [tempx[0],tempx[1]]
-                        instincts_unbought[inspot]["level"] = tempx[1]
-                        if int(instincts_unbought[inspot]["level"]) == int(instincts_unbought[inspot]["max level"]):
-                            instincts_unbought[inspot]["status"] = "×"*len(instincts_unbought[inspot]["status"])
-                    if "bo-" in x:
-                        tempx = x.split("-")
-                        tempx = tempx[1]
-                        tempx = tempx.split(";")
-                        tempxx = tempx[0]
-                        tempxx = str(tempxx)
-                        boons[tempxx][3] = int(tempx[1])
-                        if len(tempx) == 3:
-                            if tempx[2] == "*" and boon_donut_cheat == 0:
-                                boons[tempxx][2] = True
-                                boon_donut_cheat = 1
-                    if "se-" in x:
-                        tempx = x.split(";")
-                        settingtemp = tempx[0].split("-")
-                        if "*" in tempx:
-                            settings[settingtemp[1]][2] = str(tempx[1])
-                        else:
-                            settings[settingtemp[1]][2] = int(tempx[1])
-                    if "ti-" in x:
-                        settingtemp = x.split("-")
-                        all_gone = round(time.time() - float(settingtemp[1]))
-                        all_gone = round(time.time() - float(settingtemp[1]))
-                        days_gone = m.floor(all_gone / 86400)
-                        if days_gone == 0:
-                            hours_gone = m.floor((all_gone) / 3600)
-                        else:
-                            hours_gone = m.floor((all_gone % days_gone) / 3600)
-                        minutes_gone = m.floor((all_gone % 3600)/ 60)
-                        seconds_gone = ((all_gone - hours_gone) - minutes_gone) % 60
-                        print(f"\nWelcome back Roamer! You have been gone {days_gone} days, {hours_gone} hours, {minutes_gone} minutes, and {seconds_gone} seconds.\n")
-                        time.sleep(1)
-                    if "hs" in x:
-                        settingtemp = x.split("-")
-                        hidden_shelves = int(settingtemp[1])
-            except Exception as exc: #SWITCH TO EXCEPT WHEN DONE
-                print(exc)
-                traceback.print_exc()
-                print("Bad Savecode: Fix it or contact Dev")
-            presavecode = ""
+            saveGame('')
+        #     boon_donut_cheat = 0
+        #     try:
+        #         if presavecode == "":
+        #             theload = input("Enter Code:")
+        #         else:
+        #             theload = presavecode
+        #         theload = theload.split(":")
+        #         for x in theload:
+        #             if "st-" in x:
+        #                 if "mp" in x:
+        #                     tempx = x.split(";")
+        #                     status["mastery points"] = int(tempx[1])
+        #             if "in-" in x:
+        #                 tempx = x.split("-")
+        #                 #print(tempx)
+        #                 tempx = tempx[1]
+        #                 tempx = tempx.split(";")
+        #                 for key in instincts_unbought:
+        #                     if instincts_unbought[key]["name"] == tempx[0]:
+        #                         inspot = key
+        #                 instincts[str(inspot)] = [tempx[0],tempx[1]]
+        #                 instincts_unbought[inspot]["level"] = tempx[1]
+        #                 if int(instincts_unbought[inspot]["level"]) == int(instincts_unbought[inspot]["max level"]):
+        #                     instincts_unbought[inspot]["status"] = "×"*len(instincts_unbought[inspot]["status"])
+        #             if "bo-" in x:
+        #                 tempx = x.split("-")
+        #                 tempx = tempx[1]
+        #                 tempx = tempx.split(";")
+        #                 tempxx = tempx[0]
+        #                 tempxx = str(tempxx)
+        #                 boons[tempxx][3] = int(tempx[1])
+        #                 if len(tempx) == 3:
+        #                     if tempx[2] == "*" and boon_donut_cheat == 0:
+        #                         boons[tempxx][2] = True
+        #                         boon_donut_cheat = 1
+        #             if "se-" in x:
+        #                 tempx = x.split(";")
+        #                 settingtemp = tempx[0].split("-")
+        #                 if "*" in tempx:
+        #                     settings[settingtemp[1]][2] = str(tempx[1])
+        #                 else:
+        #                     settings[settingtemp[1]][2] = int(tempx[1])
+        #             if "ti-" in x:
+        #                 settingtemp = x.split("-")
+        #                 all_gone = round(time.time() - float(settingtemp[1]))
+        #                 all_gone = round(time.time() - float(settingtemp[1]))
+        #                 days_gone = m.floor(all_gone / 86400)
+        #                 if days_gone == 0:
+        #                     hours_gone = m.floor((all_gone) / 3600)
+        #                 else:
+        #                     hours_gone = m.floor((all_gone % days_gone) / 3600)
+        #                 minutes_gone = m.floor((all_gone % 3600)/ 60)
+        #                 seconds_gone = ((all_gone - hours_gone) - minutes_gone) % 60
+        #                 print(f"\nWelcome back Roamer! You have been gone {days_gone} days, {hours_gone} hours, {minutes_gone} minutes, and {seconds_gone} seconds.\n")
+        #                 time.sleep(1)
+        #             if "hs" in x:
+        #                 settingtemp = x.split("-")
+        #                 hidden_shelves = int(settingtemp[1])
+        #     except Exception as exc: #SWITCH TO EXCEPT WHEN DONE
+        #         print(exc)
+        #         traceback.print_exc()
+        #         print("Bad Savecode: Fix it or contact Dev")
+        #     presavecode = ""
         if oblivion_choice == "8" and hidden_shelves < 0:
             for key in hidden_texts:
                 if int(key) <= hidden_shelves:
