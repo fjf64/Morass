@@ -7,6 +7,7 @@ import time
 import sys
 import threading
 from queue import Queue
+import builtins
 presavecode = "" # <---- !!! Enter Save Code Here !!! #
 
 #Welcome to the labyrinth, Roamer! 
@@ -41,6 +42,9 @@ class TkConsole:
 
         sys.stdout = self
         sys.stderr = self
+
+        self._real_input = builtins.input
+        builtins.input = self.input
 
     # stdout / stderr redirection
     def write(self, msg):
