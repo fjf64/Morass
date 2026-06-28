@@ -21,22 +21,22 @@ class TkConsole:
     def __init__(self, root):
         self.root = root
         root.title("Python Console")
-        root.geometry("700x400")
+        root.geometry("800x500")
 
         self.text = tk.Text(
             root,
-            bg="black",
-            fg="white",
-            insertbackground="white",
+            bg="#1d2021",
+            fg="#fbf1c7",
+            insertbackground="#fbf1c7",
             wrap="word"
         )
         self.text.pack(fill="both", expand=True)
 
         self.entry = tk.Entry(
             root,
-            bg="black",
-            fg="white",
-            insertbackground="white"
+            bg="#1d2021",
+            fg="#fbf1c7",
+            insertbackground="#fbf1c7"
         )
         self.entry.pack(fill="x")
         self.entry.bind("<Return>", self._on_enter)
@@ -52,7 +52,7 @@ class TkConsole:
     # stdout / stderr redirection
     def write(self, msg):
         self.text.insert("end", msg)
-        self.text.see("end")
+        self.text.after_idle(lambda: self.text.see("end"))
 
     def flush(self):
         pass
@@ -61,12 +61,13 @@ class TkConsole:
     def _on_enter(self, event):
         value = self.entry.get()
         self.entry.delete(0, "end")
-        self.write(value + "\n")
+        #this prints input in output
+        # self.write(value + "\n")
         self.input_queue.put(value)
 
     def input(self, prompt=""):
         if prompt:
-            self.write(prompt)
+            self.write(prompt + "\n")
         return self.input_queue.get()
 
 #Bug Fixing ::  //  //
@@ -127,7 +128,7 @@ tutorials = { #   "" : [""," \n"],
     "6" : ["Daemon's Boons", "Daemons, entities with the most control of the labyrinth, often speak with Roamers, giving them a challenge to entertain the Daemons. Doing so will reward a special gift, boons of incomparable power. \n"],
     "7" : ["Morrows's Contributions", "As a first generation god, Morrow had much significance in the world. But different from other gods, Morrow was the god of all that was gone, or didn't exist. Morrow built the labyrinth as a young child to entertain himself in the Rove, the space outside reality. As morrow grew older, the labyrinth became a prison for those he deemed unworthy of Eternal Absence. \n While Morrow was a harsh god, he was also a fair one. Every soul in the labyrinth has a chance to reach Eternal Absence by self improvement.  \n"],
     "8" : ["Morrow, God of Absence","Morrow was born of nothing, from a mother that didn't yet exist. Morrow's mother is a being that exists in limbo between reality and nothing, between life and death. As such, Morrow became absent, only existing in The Rove, a sliver of nothing that surrounds reality. He controls all that is absent from existence. Dreams, Death, the Past, and the Future all are in his domain, the Rove. \n Morrow lacks connection to the mortal realm, as all he touches becomes absent. To compensate, he communicates through his twin born from the same mother, Marrow, God of Pain. \n Morrow is the only being capable of giving Eternal Absence, known as death to mortals and gods alike. Without Eternal Absence, there would be no relief from pain, only suffering.  \n"],
-    "9" : ["The Flamer", "Forged on a lonely nomadic planet, this weapon of mass destruction only awakens in the hands of those who oppose gods and the like. The smith, Ferius, was a genius, only matched by his own curse of insanity. To remove the curse he had to kill the god responsible, so he sought the impossible; to kill the immortal. \n"],
+    "9" : ["The Flamer", "Forged on a lonely nomadic planet, this weapon of mass destruction only awakens in the hands of those who oppose the gods. The smith, Ferius, was a genius, only matched by his own curse of insanity. To remove the curse, he had to kill the god responsible, so he sought the impossible; killing the immortal. \n"],
     "10" : ["Roamer's Traps","The greatest tool is one forged for it's purpose. No matter the skill of the smith, weaver, or leatherworker, a weapon crafted for a different purpose isn't effective, no matter its history. \n"],
     "11" : ["Ferius, the Insane", "A talented genius beyond compare. Ferius was a mortal who ascended, gaining godlike smithing abilities. But many were opposed to a mortal with such power, and one such was a god named Medatio, God of Curses.\nTo stop Ferius from turning his abilities against the gods, Medatio cursed him to have his mind shattered into immeasurable peices, and Ferius sanity with thousands of his minds in his small human brain. \nHowever, Ferius was a genius, and with so many minds, he quickly surpassed the smithing ability of many gods. He took to a distant, frozen, roaming planet to forge a weapon to kill Medatio.\nEnamored with the heat of his forge, he hammered out  a trigger, then a barrel, and finally, thirteen Bottles of Sky. \nThe heat of his forge and the fire in his eyes flickered out, as he finally escapes his god-given insanity, leaving his last piece of being for his final masterpiece. \n"],
     "12" : ["Reep","Born in nothing, Reep was a special child. At the flick of a wrist, any living matter would lose all energy, even in the Rove. His parents both passed away during his birth, along with anything living in a small vicinity. Those who feared Reep fueled him, driving him mad with the lonely truth he faced. He begun to thirst for death, as food no longer sustained him. To be quell his hunger, he hunted, learning of his weapon, the Sythe of Death. Morrow saw this cursed child, and gave him the only chance at hand, sending him to the Infinite Labyrinth. \n"],
@@ -1106,7 +1107,7 @@ def mainGame(console):
                         dash_charge = boons["3"][3]*3
                     print(f"{m.floor(dash_charge)} Dashes")
                 for x in active_moving_projectiles:
-                    if Predator_loc[0] in x and Predator_loc[1] in x and fire in x:
+                    if Predator_loc[0] == x[0][0] and Predator_loc[1] == x[0][1] and fire in x:
                         if "8" in instincts:
                             mastery_pool += (5 + (.5*int(instincts_unbought["8"]["level"]))) * (1+(.1*int(instincts_unbought["1"]["level"])))
                         else:
@@ -1249,7 +1250,7 @@ def mainGame(console):
             """Real instinct_tree = {
             1:"     2 - 4 - 9 - 15 - 11                ",
             2:"    /                                 ",
-            3:"0- 1 - 10 - 20 - 100 ",
+            3:"0-1  - 10 - 20 - 100 ",
             4:"   \                             ",
             5:"    3 - 5 - 8 - 14 - 16 - 12          ",
             6:"      \                           ",
