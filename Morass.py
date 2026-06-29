@@ -17,6 +17,11 @@ file_path = script_dir / "saveFile.txt"
 #Cheatcode = 
 #st-mp;999000000008989:in-Roamer's Revival;1:in-weapon knowledge;5:in-Bear Traps;3:in-Sharp Fangs;5:in-Komodo Jaws;4:in-Quick SetUp;1:in-The Flamer;1:in-Compressed Canisters;3:in-Cleansing Flames;2:in-終わり [Owari];1:in-Cloudfire Ejection System;1:in-Frozen Growth;1:in-Heavy Caliber;1:in-Targeting System;1:in-Endless Replication;3:in-Gifts of Nothing;2:bo-1;3:bo-4;3:bo-3;3;*:bo-2;3:se-1;0:se-2;0:se-3;0:se-4;d;*:se-5;a;*:se-6;w;*:se-7;s;*:se-8;f;*:se-9;ft;*:se-10;o;*:se-11;t;*:ti-1
 
+#Bug Fixing ::  //  //
+#To-Do ::  phase through wall single-use item, random teleport item, random upgrades in the labyrinth, increase higher tier upgrade price, restock, Jailer
+#NOW To-Do NOW :: hidden shelves, erase old text, prevent key-enter in shop AND settings AND library
+#Bug Report:: beast crash, sheep teleport, wrong spawn
+
 class TkConsole:
     def __init__(self, root):
         self.root = root
@@ -39,7 +44,12 @@ class TkConsole:
             insertbackground="#fbf1c7"
         )
         self.entry.pack(fill="x")
-        self.entry.bind("<Return>", self._on_enter)
+        self.entry.focus_set()
+        #self.entry.bind("<Return>", self._on_enter)
+        self.entry.bind("<Return>", self._shop_enter)
+        keybinds = ['1','2','3','4','5','6','7','8','9','0','a','s','d','w','o','t','y','n','question']
+        for key in keybinds:
+            self.entry.bind(f"<KeyRelease-{key}>", self._on_enter)
 
         self.input_queue = Queue()
 
@@ -59,6 +69,14 @@ class TkConsole:
 
     # input() support
     def _on_enter(self, event):
+        if not oblivion_choice in ['2','3','6'] or event.keysym in ['y', 'n']:
+            value = self.entry.get()
+            self.entry.delete(0, "end")
+            #this prints input in output
+            # self.write(value + "\n")
+            self.input_queue.put(value)
+    
+    def _shop_enter(self, event):
         value = self.entry.get()
         self.entry.delete(0, "end")
         #this prints input in output
@@ -70,10 +88,7 @@ class TkConsole:
             self.write(prompt + "\n")
         return self.input_queue.get()
 
-#Bug Fixing ::  //  //
-#To-Do ::  phase through wall single-use item, random teleport item, random upgrades in the labyrinth, increase higher tier upgrade price, restock, Jailer
-#NOW To-Do NOW :: hidden shelves
-#Bug Report:: beast crash, sheep teleport
+
 """ map coords
     #ABCD
     1####
@@ -150,12 +165,12 @@ instincts_unbought = {
     "3":{"name":"The Flamer", "level":0, "max level":1, "price":50, "effect":"Obtain a dangerous Flamethrower, stunning roamers, clearing the cold, and injuring Predators - [f + {w,a,s,d}] use in direction. ex.) [fw] to fire up.", "description": "capable of burning the gods, the flamethrower shall purify all with its flames. ", "prereq":1, "status":"3"},
     "4":{"name":"Sharp Fangs", "level":0, "max level":5, "price":3, "effect":"Increases trap damage", "description":"One must sharpen their fangs to draw blood. ", "prereq":2, "status":"4"},
     "5":{"name":"Compressed Canisters", "level":0, "max level":11, "price":7, "effect":"Increases the Flamer ammo storage", "description":"The Origin of Fire is fuel. Let it burn. ", "prereq":3, "status":"5"},
-    "6":{"name":"終わり [Owari]", "level":0, "max level":1, "price":50, "effect":"unlocks the frozen sniper rifle used to freeze enemies in the column and row of the Roamer. [p] - use", "description":"To stop the unkillable, one must use time. ", "prereq":3, "status":"6"},
+    "6":{"name":"終わり [Owari]", "level":0, "max level":1, "price":50, "effect":"unlocks a frozen sniper rifle used to freeze enemies in the column and row of the Roamer. [p] - use", "description":"To stop the unkillable, one must use time. ", "prereq":3, "status":"6"},
     "7":{"name":"Frozen Growth", "level":0, "max level":2, "price":25, "effect":"Increases Owari sniper ammo. ", "description":"The cold seeps into all. ", "prereq":6, "status":"7"},
     "8":{"name":"Cleansing Flames", "level":0, "max level":5, "price":5, "effect":"increases Flamer damage by 10%", "description":"The flames crave inpurity.", "prereq":5, "status":"8"},
     "9":{"name":"Komodo Jaws", "level":0, "max level":4, "price":15, "effect":"Traps stops the predator for longer", "description":"With jaws like a Komodo, they will never let go. ", "prereq":4, "status":"9"},
     "10":{"name":"Gifts of Nothing", "level":0, "max level":3, "price":500, "effect":"Creates pick-ups to replenish ammo", "description":"To run out of supplies is to break universal laws. Balance must be established.", "prereq":1, "status":"10"},
-    "11":{"name":"Release Relentless", "level":0, "max level":1, "price":13000, "effect":"Allows the predator to be stunned for longer", "description":"You are as relentless as your living space.", "prereq":15, "status":"11"},
+    "11":{"name":"Relentless", "level":0, "max level":1, "price":13000, "effect":"Allows the predator to be stunned for longer", "description":"You are as relentless as your prison.", "prereq":15, "status":"11"},
     "12":{"name":"Release the Flames", "level":0, "max level":1, "price":13000, "effect":"allows more fire at once", "description":"Do not let the fire die.", "prereq":16, "status":"12"},
     "13":{"name":"13 13 13", "level":0, "max level":1, "price":13000000, "effect":"Stay in the Labyrinth and Become Insane.", "description":"13 13 13 13 13 13 13 13 13 13 13 13 13", "prereq":20, "status":"13"},
     "14":{"name":"Cloudfire Ejection System", "level":0, "max level":1, "price":50, "effect":"Allows user to eject a bottle of fuel with [ft]", "description":"The fire wishes for more fuel, more food, and more flesh. ", "prereq":8, "status":"14"},
@@ -205,6 +220,7 @@ player_traps = []
 hidden_shelves = 0
 tanks = [] #[[0x,0y,]]
 active_moving_projectiles = [] # [[posx,posy],[oldposx,oldposy],direction_travelling,name]]
+active_fire = []
 deathzones = [] #[[0x,1y,2oldx, 4time]]
 beestjumpswitch = 0
 hs_text = ""
@@ -309,6 +325,7 @@ def mainGame(console):
     global script_dir
     global file_path
     global oblivion_choice
+    global active_fire
     def loadSave(code):
         try:
             theload = code
@@ -908,7 +925,7 @@ def mainGame(console):
             breakcheck = True
     
     while True:
-        if oblivion_choice :
+        if oblivion_choice:
             if oblivion_choice == "7":
                 print("Data Wiped.")
                 os.execv(sys.executable, [sys.executable] + sys.argv)
@@ -919,10 +936,8 @@ def mainGame(console):
             print("Game Saved.")
             savingcode()
         print(f"\nWelcome to the Oblivion. [1] Enter the labyrinth || [2] The Library || [3] Roamer's Instincts || {boon_notification}{boon_notification} [4] Boons {boon_notification}{boon_notification} || [5] Status || [6] Settings || [7] Clear Save {hs_text}")
-        if presavecode == "":
-            oblivion_choice = input()
-        else:
-            oblivion_choice = "7"
+        oblivion_choice = ''
+        oblivion_choice = input()
         #oblivion_choice = "1"
         if oblivion_choice == "1":
             mastery_passive_gain = 0
@@ -991,6 +1006,7 @@ def mainGame(console):
                 else:
                     print("On Fire: Movement uncontrollable.")
                     player_on_fire -= 1
+                    #WIP I have no idea what the next 6 lines do or why they're here lmao
                     editmap(oldpp[0], oldpp[1], walkable, True)
                     newpp = oldpp
                     firep = []
@@ -1240,7 +1256,7 @@ def mainGame(console):
             instinct_tree = {
             1:"     "+str(ns[2])+" - "+str(ns[4])+" - "+str(ns[9])+" - "+str(ns[15])+" - "+str(ns[11])+"               ",
             2:"    /                                ",
-            3:str(ns[0])+" - "+str(ns[1])+" - "+str(ns[10])+" - "+str(ns[20])+" - "+str(ns[100])+"  ",
+            3:str(ns[0])+"-"+str(ns[1])+" - "+str(ns[10])+" - "+str(ns[20])+" - "+str(ns[100])+"  ",
             4:"   \                             ",
             5:"    "+str(ns[3])+" - "+str(ns[5])+" - "+str(ns[8])+" - "+str(ns[14])+" - "+str(ns[16])+" -  "+str(ns[12])+"          ",
             6:"      \                           ",
@@ -1250,7 +1266,7 @@ def mainGame(console):
             """Real instinct_tree = {
             1:"     2 - 4 - 9 - 15 - 11                ",
             2:"    /                                 ",
-            3:"0-1  - 10 - 20 - 100 ",
+            3:"0-1 - 10 - 20 - 100 ",
             4:"   \                             ",
             5:"    3 - 5 - 8 - 14 - 16 - 12          ",
             6:"      \                           ",
